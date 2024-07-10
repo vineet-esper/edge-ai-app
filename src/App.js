@@ -31,6 +31,10 @@ console.log(process.env.REACT_APP_GAI_API_KEY)
 function App() {
     const webcamRef = useRef(null)
 
+    const isMobileDevice = () => {
+        return window.innerWidth <= 800 && window.innerHeight <= 1280;
+    };
+
     const capture = async () => {
         const imageSrc = webcamRef.current.getScreenshot()
 
@@ -54,10 +58,17 @@ function App() {
 		}
     }
 
+    const videoConstraints = isMobileDevice() ? {
+        facingMode: { exact:  "environment" }
+    } : {
+        facingMode: "user"
+    }
+
     return (
         <div className="App">
             <h1>Esper Edge AI</h1>
             <Webcam
+                videoConstraints={videoConstraints}
                 audio={false}
                 ref={webcamRef}
                 // screenshotFormat="image/jpeg"
