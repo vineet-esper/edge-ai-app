@@ -40,7 +40,7 @@ function App() {
         setIsLoading(true)
         const imageSrc = webcamRef.current.getScreenshot()
 
-		const prompt = "find object in the image and where it is placed(if aisle details available, then respond only aisle details)?. Give response in this format {'objectName': 'value','location':'value'}";
+		const prompt = `find object in the image and where it is placed(if aisle details available, then respond only aisle details)?. Give response in this JSON strigified format {"objectName": "value","location":"value"}`;
 		const image = {
 		inlineData: {
 			data: imageSrc.replace('data:', '').replace(/^.+,/, ''),
