@@ -1,5 +1,5 @@
 import "./App.css"
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 
 import Webcam from "react-webcam"
 import { GoogleGenerativeAI } from "@google/generative-ai";
@@ -29,6 +29,7 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
 console.log(process.env.REACT_APP_GAI_API_KEY)
 function App() {
+    const [isLoading, setIsLoading] = useState(false)
     const webcamRef = useRef(null)
 
     const isMobileDevice = () => {
@@ -36,9 +37,10 @@ function App() {
     };
 
     const capture = async () => {
+        setIsLoading(true)
         const imageSrc = webcamRef.current.getScreenshot()
 
-		const prompt = "find object in the image and where it is placed?. Give response in this format {'objectName': 'value','location':'value'}";
+		const prompt = "find object in the image and where it is placed(if aisle details available, then respond only aisle details)?. Give response in this format {'objectName': 'value','location':'value'}";
 		const image = {
 		inlineData: {
 			data: imageSrc.replace('data:', '').replace(/^.+,/, ''),
@@ -56,7 +58,9 @@ function App() {
 			set(ref(database, 'inferences/' + id), JSON.parse(jsonResult));
 		} catch(e) {
 			console.log('GAI ERROR: ', e)
-		}
+		} finally {
+            setIsLoading(false)
+        }
     }
 
     const videoConstraints = isMobileDevice() ? {
@@ -75,7 +79,7 @@ function App() {
                 // screenshotFormat="image/jpeg"
                 width="50%"
             /><br />
-            <button className="button-9" onClick={capture}>Capture</button>
+            <button className="button-9" onClick={capture}>{isLoading ? 'Loading...' : 'Capture'}</button>
         </div>
     )
 }
