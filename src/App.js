@@ -34,7 +34,7 @@ function App() {
     const capture = async () => {
         const imageSrc = webcamRef.current.getScreenshot()
 
-		const prompt = "Can you detect objects and which aisle they are in? Respond in stringified JSON form {object: 'value', location: 'value'}";
+		const prompt = "Can you detect objects and where they are located? Respond in stringified JSON form {objectName: 'value', location: 'value'}";
 		const image = {
 		inlineData: {
 			data: imageSrc.replace('data:', '').replace(/^.+,/, ''),
