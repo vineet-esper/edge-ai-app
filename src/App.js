@@ -53,9 +53,10 @@ function App() {
 			const jsonResult = result.response.text();
 			console.log(jsonResult)
 			const id = uuidv4()
-            alert(jsonResult)
 			
 			set(ref(database, 'inferences/' + id), JSON.parse(jsonResult));
+            alert(jsonResult)
+
 		} catch(e) {
 			console.log('GAI ERROR: ', e)
 		} finally {
