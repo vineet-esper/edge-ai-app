@@ -6,7 +6,7 @@ import { GoogleGenerativeAI } from "@google/generative-ai";
 import { initializeApp } from "firebase/app";
 import { v4 as uuidv4 } from 'uuid';
 import { getDatabase, ref, set } from "firebase/database";
-
+import { getStorage, ref as storageRef, uploadString } from "firebase/storage";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -22,6 +22,7 @@ const firebaseConfig = {
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
 const database = getDatabase(app);
+const storage = getStorage();
 
 // Access your API key (see "Set up your API key" above)
 const genAI = new GoogleGenerativeAI(process.env.REACT_APP_GAI_API_KEY);
@@ -42,26 +43,36 @@ function App() {
 
 		const prompt = `find object in the image and where it is placed(if aisle details available, then respond only aisle details)?. Give response in this JSON strigified format {"objectName": "value","location":"value"}`;
 		const image = {
-		inlineData: {
-			data: imageSrc.replace('data:', '').replace(/^.+,/, ''),
-			mimeType: "image/webp",
-		},
+            inlineData: {
+                data: imageSrc.replace('data:', '').replace(/^.+,/, ''),
+                mimeType: "image/webp",
+            },
 		};
 
-		try {
-			const result = await model.generateContent([prompt, image]);
-			const jsonResult = result.response.text();
-			console.log(jsonResult)
-			const id = uuidv4()
-			
-			set(ref(database, 'inferences/' + id), JSON.parse(jsonResult));
-            alert(jsonResult)
+        const id = uuidv4()
 
-		} catch(e) {
-			console.log('GAI ERROR: ', e)
-		} finally {
-            setIsLoading(false)
-        }
+
+        const stgRef = storageRef(storage, `images/${id}`);
+        uploadString(stgRef, imageSrc, 'data_url').then(async (result) => {
+            console.log('Uploaded a base64 string!');
+            const imageUrl = result.metadata.fullPath
+
+            try {
+                const result = await model.generateContent([prompt, image]);
+                const jsonResult = result.response.text();
+                console.log(jsonResult)
+                
+                set(ref(database, 'inferences/' + id), {...JSON.parse(jsonResult), timestamp: new Date().toISOString(), imageUrl});
+                alert(jsonResult)
+    
+            } catch(e) {
+                console.log('GAI ERROR: ', e)
+            } finally {
+                setIsLoading(false)
+            }
+        });
+
+		
     }
 
     const videoConstraints = isMobileDevice() ? {
@@ -78,7 +89,7 @@ function App() {
                 audio={false}
                 ref={webcamRef}
                 // screenshotFormat="image/jpeg"
-                width="50%"
+                width={isMobileDevice() ? "90%" : "50%"}
             /><br />
             <button className="button-9" onClick={capture}>{isLoading ? 'Loading...' : 'Capture'}</button>
         </div>
