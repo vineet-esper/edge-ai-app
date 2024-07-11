@@ -70,9 +70,7 @@ function App() {
             } finally {
                 setIsLoading(false)
             }
-        });
-
-		
+        }).catch(e => console.log('upload to storage error: ', e))
     }
 
     const videoConstraints = isMobileDevice() ? {
