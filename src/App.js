@@ -7,6 +7,7 @@ import { initializeApp } from "firebase/app";
 import { v4 as uuidv4 } from 'uuid';
 import { getDatabase, ref, set } from "firebase/database";
 import { getStorage, ref as storageRef, uploadString } from "firebase/storage";
+import { useLongPress } from 'use-long-press';
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -31,8 +32,15 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 console.log(process.env.REACT_APP_GAI_API_KEY)
 function App() {
     const [isLoading, setIsLoading] = useState(false)
+    const [prompt, setPrompt] = useState('find object in the image and where it is placed(if aisle details available, then respond only aisle details)?')
     const [frontToggleCamera, setFrontToggleCamera] = useState(true)
     const webcamRef = useRef(null)
+    const bind = useLongPress(() => {
+        let newPrompt = window.prompt("Enter new prompt", "");
+        if (newPrompt != null) {
+            setPrompt(newPrompt)
+          }
+      });
 
     const isMobileDevice = () => {
         return window.innerWidth <= 800  && window.innerHeight <= 1280;
@@ -42,7 +50,7 @@ function App() {
         setIsLoading(true)
         const imageSrc = webcamRef.current.getScreenshot()
 
-		const prompt = `find object in the image and where it is placed(if aisle details available, then respond only aisle details)?. Give response in this JSON strigified format {"objectName": "value","location":"value"}`;
+		const reqprompt = `${prompt}. Give response in this JSON strigified format {"objectName": "value","location":"value"}`;
 		const image = {
             inlineData: {
                 data: imageSrc.replace('data:', '').replace(/^.+,/, ''),
@@ -59,7 +67,7 @@ function App() {
             const imageUrl = result.metadata.fullPath
 
             try {
-                const result = await model.generateContent([prompt, image]);
+                const result = await model.generateContent([reqprompt, image]);
                 const jsonResult = result.response.text();
                 console.log(jsonResult)
                 
@@ -82,7 +90,7 @@ function App() {
 
     return (
         <div className="App">
-            <h1>Esper Edge AI</h1>
+            <h1 {...bind()}>Esper Edge AI</h1>
             <Webcam
                 videoConstraints={videoConstraints}
                 audio={false}
