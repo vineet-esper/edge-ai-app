@@ -31,10 +31,11 @@ const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 console.log(process.env.REACT_APP_GAI_API_KEY)
 function App() {
     const [isLoading, setIsLoading] = useState(false)
+    const [frontToggleCamera, setFrontToggleCamera] = useState(true)
     const webcamRef = useRef(null)
 
     const isMobileDevice = () => {
-        return window.innerWidth <= 800 && window.innerHeight <= 1280;
+        return window.innerWidth <= 800  && window.innerHeight <= 1280;
     };
 
     const capture = async () => {
@@ -73,7 +74,7 @@ function App() {
         }).catch(e => console.log('upload to storage error: ', e))
     }
 
-    const videoConstraints = isMobileDevice() ? {
+    const videoConstraints = !frontToggleCamera ? {
         facingMode: { exact:  "environment" }
     } : {
         facingMode: "user"
@@ -89,7 +90,12 @@ function App() {
                 // screenshotFormat="image/jpeg"
                 width={isMobileDevice() ? "90%" : "50%"}
             /><br />
-            <button className="button-9" onClick={capture}>{isLoading ? 'Loading...' : 'Capture'}</button>
+            <div style={{display: 'flex', alignItems: 'center', justifyContent: 'center', marginTop: 20}}>
+                <button className="button-9" onClick={capture}>{isLoading ? 'Loading...' : 'Capture'}</button>&emsp;
+                <button className="button-icon" onClick={() => setFrontToggleCamera(!frontToggleCamera)}>
+                    <span class="material-symbols-outlined">flip_camera_android</span>
+                </button>
+            </div>
         </div>
     )
 }
